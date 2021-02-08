@@ -101,8 +101,8 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "inst1" {
-  ami           = "ubuntu"
-  instance_type = "t2.micro"
+  ami           = data.aws_ami.ubuntu
+  instance_type = "t2.nano"
   depends_on = [aws_internet_gateway.gw1]
   vpc_security_group_ids = [aws_security_group.group1.id]
 
@@ -117,14 +117,13 @@ resource "aws_instance" "inst1" {
   }
 
   credit_specification {
-    cpu_credits = "unlimited"
+    cpu_credits = "standard"
   }
-
 }
 
 resource "aws_instance" "inst2" {
-  ami           = "ubuntu"
-  instance_type = "t2.micro"
+  ami           = data.aws_ami.ubuntu
+  instance_type = "t2.nano"
 
   network_interface {
     network_interface_id = aws_network_interface.iface2.id
@@ -137,7 +136,7 @@ resource "aws_instance" "inst2" {
   }
 
   credit_specification {
-    cpu_credits = "unlimited"
+    cpu_credits = "standard"
   }
 }
 
