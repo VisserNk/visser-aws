@@ -113,7 +113,7 @@ resource "aws_instance" "inst1" {
 
   root_block_device {
     volume_size = 10
-    volume_typw = "gp2"
+    volume_type = "gp2"
   }
 
   credit_specification {
@@ -133,7 +133,7 @@ resource "aws_instance" "inst2" {
 
   root_block_device {
     volume_size = 10
-    volume_typw = "gp2"
+    volume_type = "gp2"
   }
 
   credit_specification {
