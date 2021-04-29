@@ -19,6 +19,18 @@ variable "ec2type" {
 	type = string
 }
 
+variable "tags" {
+  type = map
+}
+
+variable "script" {
+  type = string
+}
+
+variable "profileiam" {
+  type = string
+}
+
 resource "aws_network_interface" "iface1" {
   subnet_id   = var.subnetid
   private_ips = [var.ec2ip]
@@ -46,6 +58,8 @@ resource "aws_instance" "inst1" {
   instance_type = var.ec2type
   availability_zone = "eu-west-1a"
   key_name = var.key
+  user_data = file(var.script)
+  iam_instance_profile = var.profileiam
 
   network_interface {
     network_interface_id = aws_network_interface.iface1.id
@@ -60,9 +74,16 @@ resource "aws_instance" "inst1" {
   credit_specification {
     cpu_credits = "standard"
   }
+
+  tags = var.tags
+
 }
 
 output "public_ip_addr" {
   value = aws_instance.inst1.public_ip
+}
+
+output "id" {
+  value = aws_instance.inst1.id
 }
 
