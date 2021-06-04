@@ -29,6 +29,7 @@ variable "script" {
 
 variable "profileiam" {
   type = string
+  default = ""
 }
 
 resource "aws_network_interface" "iface1" {
@@ -81,6 +82,10 @@ resource "aws_instance" "inst1" {
 
 output "public_ip_addr" {
   value = aws_instance.inst1.public_ip
+}
+
+output "private_ip_addr" {
+  value = var.ec2ip
 }
 
 output "id" {

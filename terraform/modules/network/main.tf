@@ -5,6 +5,8 @@
 
 resource "aws_vpc" "vpc1" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support = true
 }
 
 resource "aws_internet_gateway" "gw1" {
@@ -40,6 +42,11 @@ resource "aws_route_table" "r1" {
 
 resource "aws_route_table_association" "a1" {
   subnet_id      = aws_subnet.subnet1.id
+  route_table_id = aws_route_table.r1.id
+}
+
+resource "aws_route_table_association" "a2" {
+  subnet_id      = aws_subnet.subnet2.id
   route_table_id = aws_route_table.r1.id
 }
 

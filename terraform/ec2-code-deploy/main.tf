@@ -102,7 +102,3 @@ output "alb1_ip_addr" {
 }
 
 # https://docs.aws.amazon.com/codedeploy/latest/userguide/instances-ec2-configure.html
-
-# PROSISMA VOLTA:
-# QUesto modulo che funzioni con autoscaling - non funziona deploy con nuove macchine senza rideploy manuale
-# Setup applicazione web
