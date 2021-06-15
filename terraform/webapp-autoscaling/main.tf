@@ -102,12 +102,17 @@ output "ec2instance_db_ip_addr" {
 # }
 
 resource "aws_launch_configuration" "launch" {
+  name_prefix = "launch_prefix"
   image_id      = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.large"
   key_name = aws_key_pair.visser.key_name
   user_data = file("setupweb.sh")
   iam_instance_profile = module.policyS3.ec2_profile
   security_groups = [module.security.groupid]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_placement_group" "placement" {
@@ -116,14 +121,17 @@ resource "aws_placement_group" "placement" {
 }
 
 resource "aws_autoscaling_group" "autogroup" {
-  max_size                  = 1
-  min_size                  = 1
+  max_size                  = 5
+  min_size                  = 3
   health_check_grace_period = 300
   health_check_type         = "ELB"
   force_delete              = true
   placement_group           = aws_placement_group.placement.id
   launch_configuration      = aws_launch_configuration.launch.name
   vpc_zone_identifier       = [module.network.subnetid, module.network.subnet2id]
+  instance_refresh {
+    strategy = "Rolling"
+  }
 
 }
 
@@ -172,7 +180,7 @@ output "alb1_ip_addr" {
 ############### route 53 dns mysql
 ############### autoscaling group
 ############### codedeploy + pipeline
-## ec2 web conf db con dns
+############### ec2 web conf db con dns
 ## ec2 webapp setup
 
 
