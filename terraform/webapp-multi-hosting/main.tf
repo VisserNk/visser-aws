@@ -41,15 +41,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
-# resource "aws_launch_configuration" "launch" {
-#   image_id      = data.aws_ami.ubuntu.id
-#   instance_type = "t2.micro"
-#   key_name = aws_key_pair.visser.key_name
-#   user_data = file("setup.sh")
-#   iam_instance_profile = module.policyS3.ec2_profile
-#   security_groups = [module.security.groupid]
-# }
-
 
 module "ec2instance_db" {
 	source = "../modules/ec2instance"
@@ -82,24 +73,6 @@ output "ec2instance_db_ip_addr" {
   value = module.ec2instance_db.public_ip_addr
 }
 
-# module "ec2instance_web1" {
-# 	source = "../modules/ec2instance"
-# 	tags = { 
-# 		Name = "Web1"
-# 		Mysql =  module.ec2instance_db.private_ip_addr
-# 	}
-# 	subnetid = module.network.subnetid
-# 	groupid = module.security.groupid
-# 	key = aws_key_pair.visser.key_name
-# 	ec2ip = "10.0.1.20"
-# 	ec2type = "t2.micro"
-# 	script = "setupweb.sh"
-# }
-
-
-# output "ec2instance_web1_ip_addr" {
-#   value = module.ec2instance_web1.public_ip_addr
-# }
 
 resource "aws_launch_configuration" "launch" {
   name_prefix = "launch_prefix"
@@ -174,15 +147,33 @@ output "alb1_ip_addr" {
   value = aws_lb.alb1.dns_name
 }
 
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "uno.emaiti.net"
+  validation_method = "EMAIL"
 
-# ->  Setup applicazione web
-############### conf db allow cnn 10.0.1.0
-############### route 53 dns mysql
-############### autoscaling group
-############### codedeploy + pipeline
-############### ec2 web conf db con dns
-############### ec2 webapp setup
+  lifecycle {
+    #prevent_destroy = true
+    create_before_destroy = true
+  }
+}
 
+resource "aws_acm_certificate" "cert2" {
+  domain_name       = "due.emaiti.net"
+  validation_method = "EMAIL"
+
+  lifecycle {
+    #prevent_destroy = true
+    create_before_destroy = true
+  }
+}
+
+
+
+################ certificato acm
+# configurazione certificato con alb
+# configurazione alb multipath multidomain --> check su apache document root
+# codeploy multirepo multipath
+# collegare stesso alb su elastic beanstalk
 
 # pipeline su terraform 
 # implementazione autoscaling con moduli
