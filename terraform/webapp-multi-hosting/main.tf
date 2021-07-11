@@ -42,36 +42,36 @@ data "aws_ami" "ubuntu" {
 }
 
 
-module "ec2instance_db" {
-	source = "../modules/ec2instance"
-	tags = { Name = "MysqlOne" }
-	subnetid = module.network.subnetid
-	groupid = module.security.groupmysqlid
-	key = aws_key_pair.visser.key_name
-	ec2ip = var.mysql_ip
-	ec2type = "t2.micro"
-	script = "setupmysql.sh"
-}
+# module "ec2instance_db" {
+# 	source = "../modules/ec2instance"
+# 	tags = { Name = "MysqlOne" }
+# 	subnetid = module.network.subnetid
+# 	groupid = module.security.groupmysqlid
+# 	key = aws_key_pair.visser.key_name
+# 	ec2ip = var.mysql_ip
+# 	ec2type = "t2.micro"
+# 	script = "setupmysql.sh"
+# }
 
-resource "aws_route53_zone" "zone1" {
-  name = "internal"
+# resource "aws_route53_zone" "zone1" {
+#   name = "internal"
 
-  vpc {
-    vpc_id = module.network.vpcid
-  }
-}
+#   vpc {
+#     vpc_id = module.network.vpcid
+#   }
+# }
 
-resource "aws_route53_record" "mysql" {
-  zone_id = aws_route53_zone.zone1.zone_id
-  name    = "mysql.internal"
-  type    = "A"
-  ttl     = "300"
-  records = [var.mysql_ip]
-}
+# resource "aws_route53_record" "mysql" {
+#   zone_id = aws_route53_zone.zone1.zone_id
+#   name    = "mysql.internal"
+#   type    = "A"
+#   ttl     = "300"
+#   records = [var.mysql_ip]
+# }
 
-output "ec2instance_db_ip_addr" {
-  value = module.ec2instance_db.public_ip_addr
-}
+# output "ec2instance_db_ip_addr" {
+#   value = module.ec2instance_db.public_ip_addr
+# }
 
 
 resource "aws_launch_configuration" "launch" {
@@ -132,10 +132,43 @@ resource "aws_lb_listener" "front_end" {
   port              = "80"
   protocol          = "HTTP"
 
+  # default_action {
+  #   type             = "forward"
+  #   target_group_arn = aws_lb_target_group.albgroup1.arn
+  # }
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "front_end_https" {
+  load_balancer_arn = aws_lb.alb1.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.cert.arn
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.albgroup1.arn
   }
+}
+
+# resource "aws_lb_listener_certificate" "uno_cert" {
+#   listener_arn    = aws_lb_listener.front_end_https.arn
+#   certificate_arn = aws_acm_certificate.cert.arn
+# }
+
+resource "aws_lb_listener_certificate" "due_cert" {
+  listener_arn    = aws_lb_listener.front_end_https.arn
+  certificate_arn = aws_acm_certificate.cert2.arn
 }
 
 resource "aws_autoscaling_attachment" "asg_attachment_bar" {
@@ -149,29 +182,39 @@ output "alb1_ip_addr" {
 
 resource "aws_acm_certificate" "cert" {
   domain_name       = "uno.emaiti.net"
-  validation_method = "EMAIL"
+  validation_method = "DNS"
 
   lifecycle {
-    #prevent_destroy = true
+    //prevent_destroy = true
     create_before_destroy = true
   }
 }
 
+output "uno_cert_option" {
+  value = aws_acm_certificate.cert.domain_validation_options
+}
+
+
 resource "aws_acm_certificate" "cert2" {
   domain_name       = "due.emaiti.net"
-  validation_method = "EMAIL"
+  validation_method = "DNS"
 
   lifecycle {
-    #prevent_destroy = true
+    //prevent_destroy = true
     create_before_destroy = true
   }
+}
+
+output "due_cert_option" {
+  value = aws_acm_certificate.cert2.domain_validation_options
 }
 
 
 
 ################ certificato acm
-# configurazione certificato con alb
+################ configurazione certificato con alb
 # configurazione alb multipath multidomain --> check su apache document root
+# PUPPET https://allcloud.io/blog/mastering-aws-codedeploy-with-jenkins-and-puppet/
 # codeploy multirepo multipath
 # collegare stesso alb su elastic beanstalk
 
