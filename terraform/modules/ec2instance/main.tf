@@ -21,6 +21,7 @@ variable "ec2type" {
 
 variable "tags" {
   type = map
+  default = {}
 }
 
 variable "script" {

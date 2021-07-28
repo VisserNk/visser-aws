@@ -105,6 +105,9 @@ resource "aws_autoscaling_group" "autogroup" {
   instance_refresh {
     strategy = "Rolling"
   }
+  lifecycle {
+    ignore_changes = [load_balancers, target_group_arns]
+  }
 
 }
 
